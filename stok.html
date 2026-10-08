@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Informasi Stok Bahan Ajar - SITTA UT</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .form-stok-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+    .table-stok {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      font-size: 13px;
+    }
+    .table-stok th,
+    .table-stok td {
+      border: 1px solid #ddd;
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: middle;
+    }
+    .table-stok th {
+      background-color: #004080;
+      color: white;
+      text-align: center;
+    }
+    .table-stok tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    .table-stok tr:hover {
+      background-color: #f1f5f9;
+    }
+    .cover-thumb {
+      width: 45px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 3px;
+      border: 1px solid #ccc;
+      display: block;
+      margin: 0 auto;
+    }
+    .btn-edit {
+      background-color: #f0ad4e;
+      color: white;
+      padding: 4px 8px;
+      font-size: 12px;
+      border-radius: 3px;
+      border: none;
+      cursor: pointer;
+      margin-right: 4px;
+    }
+    .btn-edit:hover {
+      background-color: #ec971f;
+    }
+    .btn-hapus {
+      background-color: #d9534f;
+      color: white;
+      padding: 4px 8px;
+      font-size: 12px;
+      border-radius: 3px;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-hapus:hover {
+      background-color: #c9302c;
+    }
+    .btn-batal {
+      background-color: #6c757d;
+      color: white;
+      padding: 8px 16px;
+      font-size: 14px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+    .btn-batal:hover {
+      background-color: #5a6268;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <nav class="navbar">
+      <div class="navbar-brand">
+        <a href="dashboard.html">SITTA UT</a>
+      </div>
+
+      <ul class="navbar-menu">
+        <li><a href="stok.html">Informasi Bahan Ajar</a></li>
+        <li><a href="tracking.html">Tracking Pengiriman</a></li>
+        <li class="dropdown">
+          <a href="#">Laporan &#9662;</a>
+          <ul class="dropdown-menu">
+            <li><a href="#">Monitoring Progress DO Bahan Ajar</a></li>
+            <li><a href="#">Rekap Bahan Ajar</a></li>
+          </ul>
+        </li>
+        <li><a href="#">Histori Transaksi Bahan Ajar</a></li>
+      </ul>
+
+      <div class="navbar-user">
+        <button type="button" class="btn-logout" onclick="logout()">Logout</button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h3 id="formTitle" style="margin-top: 0; margin-bottom: 15px; color: #004080;">Tambah Stok Bahan Ajar</h3>
+      <form id="formStok" onsubmit="simpanStok(event)">
+        <input type="hidden" id="editIndex" value="-1">
+
+        <div class="form-stok-grid">
+          <div class="form-group">
+            <label for="kodeLokasi">Kode Lokasi</label>
+            <input type="text" id="kodeLokasi" placeholder="Contoh: 0TMP01" required>
+          </div>
+          <div class="form-group">
+            <label for="kodeBarang">Kode Barang</label>
+            <input type="text" id="kodeBarang" placeholder="Contoh: ASIP4301" required>
+          </div>
+          <div class="form-group">
+            <label for="namaBarang">Nama Barang</label>
+            <input type="text" id="namaBarang" placeholder="Nama Bahan Ajar" required>
+          </div>
+          <div class="form-group">
+            <label for="jenisBarang">Jenis Barang</label>
+            <input type="text" id="jenisBarang" value="BMP" required>
+          </div>
+          <div class="form-group">
+            <label for="edisi">Edisi</label>
+            <input type="number" id="edisi" min="1" placeholder="1" required>
+          </div>
+          <div class="form-group">
+            <label for="stok">Jumlah Stok</label>
+            <input type="number" id="stok" min="0" placeholder="0" required>
+          </div>
+        </div>
+
+        <div>
+          <button type="submit" id="btnSubmit">Tambah Baris Stok</button>
+          <button type="button" id="btnBatal" class="btn-batal" onclick="batalEdit()" style="display: none;">Batal</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <h3 style="margin-top: 0; margin-bottom: 15px; color: #004080;">Daftar Stok Bahan Ajar</h3>
+      <div style="overflow-x: auto;">
+        <table class="table-stok" id="tabelStok">
+          <thead>
+            <tr>
+              <th style="width: 35px;">No</th>
+              <th style="width: 55px;">Cover</th>
+              <th>Kode Lokasi</th>
+              <th>Kode Barang</th>
+              <th>Nama Barang</th>
+              <th>Jenis</th>
+              <th>Edisi</th>
+              <th>Stok</th>
+              <th style="width: 120px;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyStok"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script>
+    function renderTabelStok() {
+      var tbody = document.getElementById("tbodyStok");
+      tbody.innerHTML = "";
+
+      for (var i = 0; i < dataBahanAjar.length; i++) {
+        var item = dataBahanAjar[i];
+        var tr = buatElemenBaris(i, item);
+        tbody.appendChild(tr);
+      }
+    }
+
+    function buatElemenBaris(index, item) {
+      var tr = document.createElement("tr");
+      var coverPath = item.cover ? ("assets/" + item.cover) : "";
+
+      tr.innerHTML = 
+        '<td style="text-align: center;">' + (index + 1) + '</td>' +
+        '<td style="text-align: center;">' +
+          (coverPath ? '<img src="' + coverPath + '" alt="Cover" class="cover-thumb" onerror="this.onerror=null; this.src=\'assets/img/pengantar_komunikasi.jpg\';">' : '-') +
+        '</td>' +
+        '<td style="text-align: center;">' + item.kodeLokasi + '</td>' +
+        '<td style="text-align: center;"><strong>' + item.kodeBarang + '</strong></td>' +
+        '<td>' + item.namaBarang + '</td>' +
+        '<td style="text-align: center;">' + item.jenisBarang + '</td>' +
+        '<td style="text-align: center;">' + item.edisi + '</td>' +
+        '<td style="text-align: right;"><strong>' + Number(item.stok).toLocaleString("id-ID") + '</strong></td>' +
+        '<td style="text-align: center;">' +
+          '<button type="button" class="btn-edit" onclick="editStok(' + index + ')">Edit</button>' +
+          '<button type="button" class="btn-hapus" onclick="hapusStok(' + index + ')">Hapus</button>' +
+        '</td>';
+
+      return tr;
+    }
+
+    function simpanStok(event) {
+      event.preventDefault();
+
+      var editIndex = parseInt(document.getElementById("editIndex").value, 10);
+      var kodeLokasi = document.getElementById("kodeLokasi").value.trim();
+      var kodeBarang = document.getElementById("kodeBarang").value.trim();
+      var namaBarang = document.getElementById("namaBarang").value.trim();
+      var jenisBarang = document.getElementById("jenisBarang").value.trim();
+      var edisi = document.getElementById("edisi").value.trim();
+      var stok = parseInt(document.getElementById("stok").value.trim(), 10);
+
+      if (editIndex === -1) {
+        var itemBaru = {
+          kodeLokasi: kodeLokasi,
+          kodeBarang: kodeBarang,
+          namaBarang: namaBarang,
+          jenisBarang: jenisBarang,
+          edisi: edisi,
+          stok: stok,
+          cover: "img/pengantar_komunikasi.jpg"
+        };
+
+        dataBahanAjar.push(itemBaru);
+        alert("Data bahan ajar berhasil ditambahkan!");
+      } else {
+        dataBahanAjar[editIndex].kodeLokasi = kodeLokasi;
+        dataBahanAjar[editIndex].kodeBarang = kodeBarang;
+        dataBahanAjar[editIndex].namaBarang = namaBarang;
+        dataBahanAjar[editIndex].jenisBarang = jenisBarang;
+        dataBahanAjar[editIndex].edisi = edisi;
+        dataBahanAjar[editIndex].stok = stok;
+
+        alert("Data bahan ajar berhasil diperbarui!");
+      }
+
+      renderTabelStok();
+      batalEdit();
+    }
+
+    function editStok(index) {
+      var item = dataBahanAjar[index];
+      if (!item) return;
+
+      document.getElementById("editIndex").value = index;
+      document.getElementById("kodeLokasi").value = item.kodeLokasi;
+      document.getElementById("kodeBarang").value = item.kodeBarang;
+      document.getElementById("namaBarang").value = item.namaBarang;
+      document.getElementById("jenisBarang").value = item.jenisBarang;
+      document.getElementById("edisi").value = item.edisi;
+      document.getElementById("stok").value = item.stok;
+
+      document.getElementById("formTitle").innerText = "Edit Stok Bahan Ajar";
+      document.getElementById("btnSubmit").innerText = "Update Stok";
+      document.getElementById("btnBatal").style.display = "inline-block";
+
+      document.getElementById("formStok").scrollIntoView({ behavior: "smooth" });
+    }
+
+    function batalEdit() {
+      document.getElementById("formStok").reset();
+      document.getElementById("editIndex").value = "-1";
+      document.getElementById("jenisBarang").value = "BMP";
+      document.getElementById("formTitle").innerText = "Tambah Stok Bahan Ajar";
+      document.getElementById("btnSubmit").innerText = "Tambah Baris Stok";
+      document.getElementById("btnBatal").style.display = "none";
+    }
+
+    function hapusStok(index) {
+      var item = dataBahanAjar[index];
+      if (!item) return;
+
+      var konfirmasi = confirm("Apakah Anda yakin ingin menghapus bahan ajar \"" + item.namaBarang + "\"?");
+      if (konfirmasi) {
+        dataBahanAjar.splice(index, 1);
+        renderTabelStok();
+
+        if (parseInt(document.getElementById("editIndex").value, 10) === index) {
+          batalEdit();
+        }
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("currentUser");
+      window.location.href = "index.html";
+    }
+
+    window.onload = renderTabelStok;
+  </script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - SITTA UT</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .table-detail {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 15px;
+    }
+    .table-detail th,
+    .table-detail td {
+      padding: 8px 12px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+    }
+    .table-detail th {
+      width: 30%;
+      color: #555;
+      background-color: #fafafa;
+    }
+    .table-riwayat {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .table-riwayat th,
+    .table-riwayat td {
+      border: 1px solid #ddd;
+      padding: 8px 10px;
+      text-align: left;
+    }
+    .table-riwayat th {
+      background-color: #004080;
+      color: white;
+    }
+    .table-riwayat tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    .alert-danger {
+      padding: 12px;
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      border-radius: 4px;
+      font-size: 14px;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <nav class="navbar">
+      <div class="navbar-brand">
+        <a href="dashboard.html">SITTA UT</a>
+      </div>
+
+      <ul class="navbar-menu">
+        <li><a href="stok.html">Informasi Bahan Ajar</a></li>
+        <li><a href="tracking.html">Tracking Pengiriman</a></li>
+        <li class="dropdown">
+          <a href="#">Laporan &#9662;</a>
+          <ul class="dropdown-menu">
+            <li><a href="#">Monitoring Progress DO Bahan Ajar</a></li>
+            <li><a href="#">Rekap Bahan Ajar</a></li>
+          </ul>
+        </li>
+        <li><a href="#">Histori Transaksi Bahan Ajar</a></li>
+      </ul>
+
+      <div class="navbar-user">
+        <button type="button" class="btn-logout" onclick="logout()">Logout</button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2 id="greeting" style="margin: 0 0 8px 0; color: #004080;">Selamat Datang</h2>
+      <p id="user-info" style="margin: 0; color: #555; font-size: 14px;">Sistem Informasi Pengelolaan Bahan Ajar (SITTA)</p>
+    </section>
+
+    <section class="card">
+      <h3 style="margin-top: 0; margin-bottom: 15px; color: #004080;">Tracking Pengiriman Bahan Ajar</h3>
+      
+      <form style="display: flex; gap: 10px; margin-bottom: 20px;" onsubmit="event.preventDefault(); cariTracking();">
+        <input type="text" id="nomorDO" placeholder="Masukkan Nomor Delivery Order (contoh: 2023001234 atau 2023005678)" style="flex: 1; padding: 9px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;" required>
+        <button type="submit">Cari</button>
+      </form>
+
+      <div id="hasilTracking"></div>
+    </section>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script>
+    function tampilkanGreeting() {
+      var jam = new Date().getHours();
+      var ucapan = "Selamat Datang";
+
+      if (jam >= 4 && jam < 11) {
+        ucapan = "Selamat Pagi";
+      } else if (jam >= 11 && jam < 15) {
+        ucapan = "Selamat Siang";
+      } else if (jam >= 15 && jam < 18) {
+        ucapan = "Selamat Sore";
+      } else {
+        ucapan = "Selamat Malam";
+      }
+
+      var user = JSON.parse(localStorage.getItem("currentUser"));
+      if (user && user.nama) {
+        document.getElementById("greeting").innerText = ucapan + ", " + user.nama + "!";
+        document.getElementById("user-info").innerText = "Role: " + user.role + " | Lokasi: " + user.lokasi;
+      } else {
+        document.getElementById("greeting").innerText = ucapan + "!";
+      }
+    }
+
+    function cariTracking() {
+      var inputDO = document.getElementById("nomorDO").value.trim();
+      var container = document.getElementById("hasilTracking");
+
+      if (!inputDO) {
+        alert("Silakan masukkan nomor Delivery Order.");
+        return;
+      }
+
+      var data = dataTracking[inputDO];
+
+      if (data) {
+        var riwayatHtml = "";
+        if (data.perjalanan && data.perjalanan.length > 0) {
+          riwayatHtml = '<h4 style="margin: 20px 0 10px; font-size: 15px; color: #004080;">Riwayat Perjalanan Pengiriman</h4>' +
+            '<table class="table-riwayat">' +
+              '<thead>' +
+                '<tr>' +
+                  '<th style="width: 180px;">Waktu</th>' +
+                  '<th>Keterangan</th>' +
+                '</tr>' +
+              '</thead>' +
+              '<tbody>';
+
+          for (var i = 0; i < data.perjalanan.length; i++) {
+            riwayatHtml += '<tr>' +
+              '<td>' + data.perjalanan[i].waktu + '</td>' +
+              '<td>' + data.perjalanan[i].keterangan + '</td>' +
+            '</tr>';
+          }
+
+          riwayatHtml += '</tbody></table>';
+        }
+
+        container.innerHTML = 
+          '<div style="border-top: 1px solid #eee; padding-top: 15px;">' +
+            '<table class="table-detail">' +
+              '<tr>' +
+                '<th>Nomor DO</th>' +
+                '<td><strong>' + data.nomorDO + '</strong></td>' +
+              '</tr>' +
+              '<tr>' +
+                '<th>Nama Mahasiswa</th>' +
+                '<td>' + data.nama + '</td>' +
+              '</tr>' +
+              '<tr>' +
+                '<th>Status Pengiriman</th>' +
+                '<td>' + data.status + '</td>' +
+              '</tr>' +
+              '<tr>' +
+                '<th>Ekspedisi</th>' +
+                '<td>' + data.ekspedisi + '</td>' +
+              '</tr>' +
+              '<tr>' +
+                '<th>Tanggal Kirim</th>' +
+                '<td>' + data.tanggalKirim + '</td>' +
+              '</tr>' +
+              '<tr>' +
+                '<th>Jenis Paket</th>' +
+                '<td>' + data.paket + '</td>' +
+              '</tr>' +
+              '<tr>' +
+                '<th>Total Pembayaran</th>' +
+                '<td><strong>' + data.total + '</strong></td>' +
+              '</tr>' +
+            '</table>' +
+            riwayatHtml +
+          '</div>';
+      } else {
+        container.innerHTML = 
+          '<div class="alert-danger">' +
+            'Nomor Delivery Order <strong>' + inputDO + '</strong> tidak ditemukan. Silakan periksa kembali nomor DO yang dimasukkan.' +
+          '</div>';
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("currentUser");
+      window.location.href = "index.html";
+    }
+
+    window.onload = tampilkanGreeting;
+  </script>
+</body>
+</html>
